@@ -1,21 +1,21 @@
 # asterisk_call_parser
 Простой парсер звонков для FreePBX.
 
-Требования:
+## Требования:
     **FreePBX14**
     **Python3.6**
     **Chromium**
 
-Установка:
+## Установка:
     **python3.6 -m pip install -r ./requirements.txt**
     
 
-Настройка:
+## Настройка:
     **Редактируем файл settings.conf**
     
-Запуск:
+## Запуск:
     **bash ./run.sh**
     или
     **python3.6 ./main.py**
     
-Открываем в браузере url вебсервера, например http://localhost:8080
+## Открываем в браузере url вебсервера, например http://localhost:8080
