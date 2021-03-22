@@ -1,5 +1,6 @@
-# asterisk_call_parser
+# asterisk call parser b0.1
 Простой парсер звонков для FreePBX.
+Анализ звонков на основе выбранных фильтров. 
 
 ## Требования:
     FreePBX14
