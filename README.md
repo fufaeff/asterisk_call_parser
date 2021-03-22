@@ -1,4 +1,4 @@
-# asterisk call parser b0.1
+# asterisk call parser
 Простой парсер звонков для FreePBX.
 Анализ звонков на основе выбранных фильтров. 
 
