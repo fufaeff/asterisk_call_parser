@@ -6,12 +6,15 @@
   <title>Парсер Asterisk cdr</title>
  </head>
  <style>
+ body {
+  background-color: #101416;
+  }
  P {
- 	text-align: left;
- 	font-style: normal;
- 	font-family: monospace;
- 	font-size: 16;
- 	color: black
+  text-align: center;
+  font-style: normal;
+  font-family: Calibri,  Arial, Tahoma;
+  font-size: 22px;
+  color: gainsboro;
  }
  H4 {
  	text-align: left;
@@ -21,20 +24,66 @@
  	color: black
  }
  table {
- 	background-color: #F7F8EA;
- 	padding: 4;
-  border: 2px solid #fff;
- 	border-spacing: 4;
- 	width: 100%;
- 	rules: rows;
- 	border-spacing: 10px 20 px
+  width: 100%;
+  border-radius: 15px;
+  font-family: Calibri,  Arial, Tahoma;
+  margin-bottom: 5px;
+  background-color: #202832;
+  padding: 10px;
+  font-size: 18px;
  }
+ td {
+  padding: 10px;
+  text-align: center;
+  color: gainsboro;
+  background-color: #2c3844;
+ }
+ select {
+  background-color: #5ab9b9;
+  border-radius: 5px;
+  outline: none;
+ }
+ input {
+  background-color: #5ab9b9;
+  border-radius: 5px;
+  outline: none;
+ }
+ button {
+  background-color: #5ab9b9;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  width: 80px;
+  height: 25px;
+  }
+  .table_header {
+   background: linear-gradient(to bottom, #5ab9b9, #2c3844);
+   color: gainsboro;
+   height: 50px;
+  }
+  .busy {
+   background: radial-gradient(#b95555, #2c3844);
+  }
+  .ans {
+   background: radial-gradient(#55b955, #2c3844);
+  }
+  .noAns {
+   background: radial-gradient(#b95533, #2c3844);
+  }
+  .outer {
+   background: radial-gradient(#b9b922, #2c3844);
+  }
  </style>
  <body>
     <!-- Фильтры -->
     <table>
+     										<tr>
+                <td colspan="2" style="border-top-left-radius: 10px; border-top-right-radius: 10px; font-size: 24px; font-weight: bold;" class="table_header">
+                    Specialist-IT АТС
+                </td>
+          </tr>
           <TR CLASS="filters">
-              <TD>
+              <TD style="border-bottom-left-radius: 10px;">
                           <form name="tmpl" id="tmpl" method="post" action="/filters_tmpl">
                               <p><b>Шаблоны</b></p>
                               <select name="tmpl" id="tmpl">
@@ -47,13 +96,13 @@
                           <p><BUTTON TYPE="submit">Поиск</BUTTON>
                           </form>
                           </TD>
-            <TD>
+            <TD style="border-bottom-right-radius: 10px;">
                 <form name=datetime id=datetime method="post" action="/filters">
                     <table>
                         <tr>
 
 
-                            <td>
+                            <td style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;">
                                 <p><b>Период</b></p>
                                 <input type="datetime-local" id="startdate" name="startdate" value="{{ startdate }}"> по
                                 <input type="datetime-local" id="stoptdate" name="stoptdate" value="{{ stoptdate }}">
@@ -75,7 +124,7 @@
                                 <p><BUTTON TYPE="submit">Поиск</BUTTON>
                             </td>
 
-                            <td>
+                            <td style="border-top-right-radius: 10px; border-bottom-right-radius: 10px;">
                                 <p><b>Статус</b></p>
                                 <SELECT name="status">
                                     <OPTION value="all">Все</OPTION>
@@ -101,24 +150,24 @@
       <!-- Суммарная информация -->
     <table>
         <tr>
-                <td>Количество звонков: <p> {{ call_num }} </td>
-                <td>Общее время разговоров + ожидания: <p> {{ sum_time_speak_wait }} </td>
-                <td>Общее время разговоров: <p> {{ sum_time_speak }} </td>
-                <td>Общее время ожидания: <p> {{ sum_time_wait }} </td>
-                <td>Среднее время разговоров + ожидания: <p> {{ average_time_speak_wait }} </td>
-                <td>Среднее время разговоров: <p> {{ average_time_speak }} </td>
-                <td>Среднее время ожидания: <p> {{ average_time_wait }} </td>
+                <td style="border-top-left-radius: 10px; border-bottom-left-radius: 10px; font-size: 24px;">Количество звонков: <p> {{ call_num }} </p></td>
+                <td style="font-size: 24px;">Общее время разговоров + ожидания: <p> {{ sum_time_speak_wait }} </p></td>
+                <td style="font-size: 24px;">Общее время разговоров: <p> {{ sum_time_speak }} </p></td>
+                <td style="font-size: 24px;">Общее время ожидания: <p> {{ sum_time_wait }} </p></td>
+                <td style="font-size: 24px;">Среднее время разговоров + ожидания: <p> {{ average_time_speak_wait }} </p></td>
+                <td style="font-size: 24px;">Среднее время разговоров: <p> {{ average_time_speak }} </p></td>
+                <td style="border-top-right-radius: 10px; border-bottom-right-radius: 10px; font-size: 24px;">Среднее время ожидания: <p> {{ average_time_wait }} </p></td>
         </tr>
     </table>
          <!-- Генератор таблицы с звонками -->
          <table>
              <TR>
                 <!-- <TD>ПН</TD> -->
-                <TD>Дата и время</TD>
-                <TD>С номера</TD>
-                <TD>На номер</TD>
-                <TD>Статус</TD>
-                <TD>Прослушать</TD>
+                <TD class="table_header" style="border-top-left-radius: 10px;"><b>Дата и время</b></TD>
+                <TD class="table_header"><b>С номера</b></TD>
+                <TD class="table_header"><b>На номер</b></TD>
+                <TD class="table_header"><b>Статус</b></TD>
+                <TD class="table_header" style="border-top-right-radius: 10px;"><b>Прослушать</b></TD>
             </TR>
              {% for item in check_answer_list_for_html %}
                 <tr>
@@ -127,25 +176,25 @@
                     <td width="10%">  {{ item[1] }} </td> <!-- Кто звонил -->
                     <td width="10%">  {{ item[2] }} </td> <!-- Куда звонил-->
                     {% if 0 == item[3] %}
-                        <td>Дозвонились. Ожидание: {{ item[8] }} Разговор: {{ item[4] }}</td>
+                        <td class="ans">Дозвонились. Ожидание: {{ item[8] }} Разговор: {{ item[4] }}</td>
                     {% endif %}
                     {% if 1 == item[3] %}
                         {% if 4 == item[9] %}
-                            <td bgcolor="#ECCAB4">Не дозвонились. Ожидание: {{ item[8] }}  </td>
+                            <td class="noAns">Не дозвонились. Ожидание: {{ item[8] }}  </td>
                         {% else %}
                             {% if 0 == item[9] %}
-                                <td bgcolor="#D8DAB7">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили в {{ item[10] }} с номера {{ item[11] }}</td>
+                                <td class="noAns">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили в {{ item[10] }} с номера {{ item[11] }}</td>
                             {% else %}
                                 {% if 1 == item[9] %}
-                                    <td bgcolor="#D8DAB7">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, без ответа</td>
+                                    <td class="noAns">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, без ответа</td>
                                 {% else %}
                                     {% if 2 == item[9] %}
-                                        <td bgcolor="#D8DAB7">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, занято</td>
+                                        <td class="noAns">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, занято</td>
                                     {% else %}
                                         {% if 3 == item[9] %}
-                                            <td bgcolor="#D8DAB7">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, ошибка</td>
+                                            <td class="noAns">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, ошибка</td>
                                         {% else %}
-                                            <td bgcolor="#DCF0FB">Исходящий. Не дозвонились. Ожидание: {{ item[8] }} </td>
+                                            <td class="noAns">Исходящий. Не дозвонились. Ожидание: {{ item[8] }} </td>
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
@@ -153,10 +202,10 @@
                         {% endif %}
                     {% endif %}
                     {% if 2 == item[3] %}
-                        <td bgcolor="#DCF0FB"> Занято </td>
+                        <td class="busy"> Занято </td>
                     {% endif %}
                     {% if 3 == item[3] %}
-                        <td bgcolor="#ECCAB4"> Ошибка </td>
+                        <td class="busy"> Ошибка </td>
                     {% endif %}
                     <td width="15%">  <audio controls >
                             <source src="/audio/{{item[5] }}" type="audio/x-wav;codec=pcm">
