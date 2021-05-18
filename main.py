@@ -1,36 +1,19 @@
 # -*- coding: utf-8 -*-
-from os import chdir, environ, walk, makedirs
-from os.path import basename, dirname, abspath, isfile, isdir, join, split
-from flask import Flask, jsonify, request, render_template, url_for, redirect, send_from_directory, send_file
-from logging.handlers import RotatingFileHandler
-from logging import getLogger, Formatter, INFO, WARN, info, warning, error
-from configobj import ConfigObj, ConfigObjError
-from pymysql import connect, Error
 from contextlib import closing
 from datetime import datetime, timedelta
+from logging import getLogger, Formatter, WARN, info, error
+from logging.handlers import RotatingFileHandler
+from os import chdir, makedirs
+from os.path import dirname, abspath, isdir
+from flask import Flask, request, render_template, send_from_directory
+from pymysql import connect, Error
+from config.settings import *
 
 # Меняем путь
 chdir(dirname(abspath(__file__)))
 
 # creates a Flask application, named app
 app = Flask(__name__)
-
-
-# Читаем параметры и формируем словарь
-def read_config(name='settings.conf'):
-    conf_name = dirname(abspath(__file__)) + '/' + name
-    resp_conf = dict()
-    try:
-        o_file = open(conf_name, 'rb')
-        resp_conf = ConfigObj(o_file)
-    except BaseException as e:
-        print(e)
-    except ConfigObjError as e:
-        print(e)
-    return resp_conf
-
-
-conf = read_config()
 
 
 # Инициализация логов
@@ -57,8 +40,7 @@ def root():
     dst = ''
     status = ''
     call_list_for_html = parser(read_cdr('hour'))
-    check_answer_list_for_html = calls_mod(check_answer(call_list_for_html,
-                                                        interval=conf['system']['check_answer_interval']))
+    check_answer_list_for_html = calls_mod(check_answer(call_list_for_html, interval=CHECK_ANSWER_INTERVAL))
     call_sum_info_for_html = parser_sum_info(call_list_for_html)
     return render_template('index.html',
                            check_answer_list_for_html=reversed(check_answer_list_for_html),
@@ -87,6 +69,8 @@ def filters():
     call_back_b = False
     call_back_f = False
     no_call_back = False
+    cl_call_back = False
+
     if request.method == 'POST':
         src = request.form['src']
         dst = request.form['dst']
@@ -99,6 +83,7 @@ def filters():
             call_back_b = False
             call_back_f = False
             no_call_back = False
+            cl_call_back = False
             status = ''
         elif call_back == 'call back no answer':
             call_back = False
@@ -106,6 +91,7 @@ def filters():
             call_back_b = False
             call_back_f = False
             no_call_back = False
+            cl_call_back = False
             status = ''
         elif call_back == 'call back but busy':
             call_back = False
@@ -113,6 +99,7 @@ def filters():
             call_back_b = True
             call_back_f = False
             no_call_back = False
+            cl_call_back = False
             status = ''
         elif call_back == 'call back but fail':
             call_back = False
@@ -120,6 +107,7 @@ def filters():
             call_back_b = False
             call_back_f = True
             no_call_back = False
+            cl_call_back = False
             status = ''
         elif call_back == 'no call back':
             call_back = False
@@ -127,6 +115,15 @@ def filters():
             call_back_b = False
             call_back_f = False
             no_call_back = True
+            cl_call_back = False
+            status = ''
+        elif call_back == 'client call back':
+            call_back = False
+            call_back_n = False
+            call_back_b = False
+            call_back_f = False
+            no_call_back = False
+            cl_call_back = True
             status = ''
         else:
             call_back = False
@@ -134,6 +131,7 @@ def filters():
             call_back_b = False
             call_back_f = False
             no_call_back = False
+            cl_call_back = False
 
         if src != '':
             if not src.isdigit():
@@ -147,7 +145,7 @@ def filters():
         startdate = request.form['startdate'].replace('T', ' ') + ':00'
         stoptdate = request.form['stoptdate'].replace('T', ' ') + ':00'
 
-        if startdate == ':00' or stoptdate == ':00':
+        if startdate == ':00' or stoptdate == ':00':  # Если
             call_list_for_html = parser(read_cdr('hour'), source=src, dest=dst, disp=status)
         else:
             # Меняю местами даты, если стоп меньше старта
@@ -158,13 +156,14 @@ def filters():
     else:
         call_list_for_html = parser(read_cdr('hour'), source=src, dest=dst, disp=status)
 
-    check_answer_list = check_answer(call_list_for_html, interval=conf['system']['check_answer_interval'])
+    check_answer_list = check_answer(call_list_for_html, interval=CHECK_ANSWER_INTERVAL)
     check_answer_list_for_html = calls_mod(check_answer_list,
                                            call_back=call_back,
                                            call_back_n=call_back_n,
                                            call_back_b=call_back_b,
                                            call_back_f=call_back_f,
-                                           no_call_back=no_call_back)
+                                           no_call_back=no_call_back,
+                                           cl_call_back=cl_call_back)
 
     call_sum_info_for_html = parser_sum_info(check_answer_list_for_html)
 
@@ -201,7 +200,7 @@ def filters_tmpl():
         tmpl = request.form['tmpl']
     call_list_for_html = parser(read_cdr(tmpl))
     check_answer_list_for_html = calls_mod(check_answer(call_list_for_html,
-                                                        interval=conf['system']['check_answer_interval']))
+                                                        interval=CHECK_ANSWER_INTERVAL))
     call_sum_info_for_html = parser_sum_info(call_list_for_html)
     return render_template('index.html',
                            check_answer_list_for_html=reversed(check_answer_list_for_html),
@@ -222,10 +221,9 @@ def filters_tmpl():
 @app.route('/audio/<path:filename>', methods=['GET'])
 def play_audio(filename):
     file_audio_lst = filename.split('-')
-    directory = conf['system']['path_to_asterisk_monitor'] \
-                + file_audio_lst[3][:-4] + '/' \
-                + file_audio_lst[3][4:-2] + '/' \
-                + file_audio_lst[3][6:] + '/'
+    directory = PATH_TO_ASTERISK_MONITOR + file_audio_lst[3][:-4] + '/' \
+                                         + file_audio_lst[3][4:-2] + '/' \
+                                         + file_audio_lst[3][6:] + '/'
     return send_from_directory(directory, filename)
 
 
@@ -233,10 +231,9 @@ def play_audio(filename):
 def download_audio(filename):
     # external-909-380956505142-20210304-111718-1614856638.27303.wav
     file_audio_lst = filename.split('-')
-    directory = conf['system']['path_to_asterisk_monitor'] \
-                + file_audio_lst[3][:-4] + '/' \
-                + file_audio_lst[3][4:-2] + '/' \
-                + file_audio_lst[3][6:] + '/'
+    directory = PATH_TO_ASTERISK_MONITOR + file_audio_lst[3][:-4] + '/' \
+                                         + file_audio_lst[3][4:-2] + '/' \
+                                         + file_audio_lst[3][6:] + '/'
     return send_from_directory(directory, filename)
 
 
@@ -271,10 +268,10 @@ def read_cdr(interval='hour'):
 def query_db(query_):
     try:
         with closing(connect(
-                host=conf['asteriskcdr']['host'],
-                user=conf['asteriskcdr']['db_user'],
-                password=conf['asteriskcdr']['passwd'],
-                db=conf['asteriskcdr']['db_name'],
+                host=HOST,
+                user=DB_USER,
+                password=PASSWD,
+                db=DB_NAME,
                 charset='utf8mb4',
         )) as connection:
             with connection.cursor() as cursor:
@@ -282,7 +279,7 @@ def query_db(query_):
                 if cursor.rowcount <= 0:
                     return None
                 else:
-                    rows = cursor._rows
+                    rows = cursor.fetchall()
                     return rows
     except Error as e:
         error(str(e))
@@ -304,98 +301,103 @@ def parser(rows, source='', dest='', disp=''):
 
     call_list = list()
 
-    # Группировка событий в 1 звонок по столбцу linkedid
-    linkedid_list = list()
-    i = 0
+    # Группировка событий в 1 звонок по столбцу uniqueid
+    uniqueid_list = list()
     for row in rows:
-        linkedid = row[23]
-        temp = (linkedid, i)
-        linkedid_list.append(temp)
-        i += 1
-    linkedid_list.sort()
-
-    index = 0
-    cycle = 0
-    index_start = 0
-    linkedid_index_prep = list()
-    linkedid_index = list()
-    for linkedid in linkedid_list:
-        did = linkedid[0]
-        if did != linkedid_list[index_start][0]:
-            if len(linkedid_index) == 0:
-                linkedid_tmp = (linkedid_list[index_start][0], (linkedid_list[index][0],))
-            else:
-                linkedid_tmp = (linkedid_list[index_start][0], linkedid_index.copy())
-
-            linkedid_index_prep.append(linkedid_tmp)
-            index_start = index
-            index += 1
-            cycle = 0
-            linkedid_index.clear()
-            linkedid_index.append(linkedid_list[index - 1][1])
+        # Если звонили с очереди
+        if not row[5].find('from-queue') == -1 or row[4] == 'ext-queues':
+            uniqueid_list.append(row[23][:-6])
         else:
-            linkedid_index.append(linkedid_list[index][1])
-            index += 1
-            cycle += 1
+            uniqueid_list.append(row[14])
+
+    uniqueid_index_prep = list()
+    uniqueid_index = list()
+    for uniqueid in uniqueid_list:
+
+        if uniqueid == 0:
             continue
+
+        linkedid_flag = True
+        while linkedid_flag:
+            try:
+                ld_index = uniqueid_list.index(uniqueid)
+                uniqueid_index.append(ld_index)
+                uniqueid_list[ld_index] = 0
+            except BaseException as e:
+                linkedid_tmp = (uniqueid, uniqueid_index.copy())
+                uniqueid_index_prep.append(linkedid_tmp)
+                uniqueid_index.clear()
+                linkedid_flag = False
 
     call_time_sum = 0
     duration = 0
     dst = 0
     channel = ''
-    disposition = 'NO ANSWERED'
-    # Анализ списка звонков
-    for call in linkedid_index_prep:
+
+    # Анализ списка звонков, выясняем статус звонка, направление, время ожидания и разговора и т. д.
+    for call in uniqueid_index_prep:
+        disposition = 'FAILED'
         duration_wait = 0
-        ii = 0
+        date_start = '0000-00-00 00:00:00'
+        cnum = ''
+        recordingfile = ''
+        duration = 0
+
         for ii in call[1]:
             row = rows[ii]
-            if row[11] == 'ANSWERED':
-                disposition = 'ANSWERED'
-                dst = row[3]
-                duration = row[10]
-                duration_wait = duration_wait + (int(row[9]) - int(row[10]))
-                channel = row[4]
-                if len(row[3]) == 3 and row[3][0] == '7':
+
+            date_start = rows[ii][0].strftime("%Y-%m-%d %H:%M:%S")
+            dst = row[3]
+
+            channel = row[4]
+            cnum = rows[ii][18]
+            recordingfile = rows[ii][17]
+
+            # Если звонят на очередь
+            if not row[5].find('from-queue') == -1 or row[4] == 'ext-queues':
+                if row[11] == 'ANSWERED':  # Если ответили
+                    disposition = 'ANSWERED'
+                    duration = row[10]
+                    duration_wait = duration_wait + (int(row[9]) - int(row[10]))
+                    if len(row[3]) == 3 and row[3][0] == '7':  # Пропускаю событие очереди пока не найду номер
+                        continue
+                    elif len(row[3]) == 3 and row[3][0] == IN_NUM:  # Нашёл номер прерываю цикл
+                        break
+                # Если занято, ошибка или не ответ - меняем статус звонка и начинаю цикл заново
+                elif row[11] == 'BUSY' or row[11] == 'FAILED' or row[11] == 'NO ANSWER':
+                    if len(row[3]) == 3 and row[3][0] == '7':  # Если номер очереди - прибаляю к времени ожидания
+                        duration_wait = duration_wait + int(row[9])
+                    disposition = row[11]
                     continue
-                elif len(row[3]) == 3 and row[3][0] == conf['system']['in_num']:
-                    break
-                else:
-                    break
-            elif row[11] == 'BUSY':
-                disposition = 'BUSY'
-                dst = row[3]
-                duration = row[10]
-                duration_wait = duration_wait + (int(row[9]) - int(row[10]))
-                channel = row[4]
-                break
-            elif row[11] == 'FAILED':
-                disposition = 'FAILED'
-                dst = row[3]
-                duration = row[10]
-                duration_wait = duration_wait + (int(row[9]) - int(row[10]))
-                channel = row[4]
-                break
-            elif row[11] == 'NO ANSWER':
-                disposition = 'NO ANSWERED'
-                dst = row[3]
-                duration = row[10]
-                duration_wait = duration_wait + (int(row[9]) - int(row[10]))
-                channel = row[4]
-            else:
-                disposition = 'FAILED'
-                dst = row[3]
-                duration = row[9]
-                duration_wait = duration_wait + (int(row[9]) - int(row[10]))
-                channel = row[4]
+            else:  # Обработка звонков не в очереди
+                if row[11] == 'ANSWERED':
+                    disposition = 'ANSWERED'
+                    duration = row[10]
+                    duration_wait = int(row[9]) - int(row[10])
+                elif row[11] == 'BUSY' or row[11] == 'FAILED' or row[11] == 'NO ANSWER':
+                    if disposition != 'ANSWERED':
+                        disposition = row[11]
+                    duration_wait = int(row[9])
 
-        # Конвертирую дату
-        date_start = rows[ii][0].strftime("%Y-%m-%d %H:%M:%S")
-        cnum = rows[ii][18]
-        recordingfile = rows[ii][17]
-        call_list.append((date_start, cnum, dst, disposition, duration, recordingfile, channel, duration_wait))
-        call_time_sum = call_time_sum + duration  # Общее время звонка
+            # if channel == 'ext-local':
+            # elif channel == 'ext-group':
+            if channel == 'from-internal-xfer':
+                cnum = rows[ii][2]
+            # elif channel == 'from-internal':
+            elif channel == 'macro-dial':
+                cnum = rows[ii][2]
+            elif channel == 'ivr-1':
+                cnum = rows[ii][2]
+                dst = 'ivr'
+                duration_wait = duration
+                disposition = 'NO ANSWER'
+            # elif channel == 'ext-queues':
 
+        if channel in ('ext-local', 'ext-group', 'from-internal', 'ext-queues'):
+            call_list.append((date_start, cnum, dst, disposition, duration, recordingfile, channel, duration_wait))
+            call_time_sum = call_time_sum + duration  # Общее время звонка
+
+    # Фильтрую записи
     if source != '':
         call_list_filtred = list()
         for call in call_list:
@@ -478,35 +480,76 @@ def check_answer(calls, interval=900):
         return None
     if len(calls) == 0:
         return None
+
     call_check_answer = list()
     start_time = datetime.strptime(calls[0][0], "%Y-%m-%d %H:%M:%S")
     end_time = datetime.strptime(calls[len(calls) - 1][0], "%Y-%m-%d %H:%M:%S") + timedelta(seconds=int(interval))
     time_str = start_time.strftime("%Y-%m-%d %H:%M:%S") + '*' + end_time.strftime("%Y-%m-%d %H:%M:%S")
     call_list_ = parser(read_cdr(time_str))
+
     if call_list_ is None:
         return None
+
     for call in calls:
         if call[6] == 'from-internal':  # Отбрасываем внутренние номера
             continue
-        if call[3] == 'NO ANSWERED':
+        if call[3] == 'ANSWERED':
+            continue
+        if call[3] == 'NO ANSWER':
             # Выбираем диапазон звонков в заданом интервале
             chk_call_list = list()
-            answer_status = 'NO ANSWERED'
+            answer_status = 'NO ANSWER'
+            # Выясняю время звонка и задаю диапазон для поиска перезвона
+            # Время звонка
             call_in_call_list_time = datetime.strptime(call[0], "%Y-%m-%d %H:%M:%S")
-            for call_in_call_list in call_list_:
+            # Находим индекс звонка по времени
+            call_index_start = get_index_date(calls, call[0])
+            # Получаю приблизительную дату конца поиска
+            end_time_str = datetime.strptime(call[0], "%Y-%m-%d %H:%M:%S") + timedelta(seconds=int(interval))
+            # Нахожу последний индекс диапазона звонков
+            call_index_stop = get_index_date_average(call_list=call_list_,
+                                                     date_end=end_time_str.strftime("%Y-%m-%d %H:%M:%S"),
+                                                     index=call_index_start)
+            # Делаю срез общего списка
+            call_list_slice = call_list_[call_index_start:call_index_stop]
+
+            for call_in_call_list in call_list_slice:
+                # Получаю дату первого звонка в срезе
                 call_in_call_list_start_time = datetime.strptime(call_in_call_list[0], "%Y-%m-%d %H:%M:%S")
+                # Получаю дату последнего звонка
                 call_in_call_list_time_delta = call_in_call_list_start_time + timedelta(seconds=int(interval))
+                # Проверяю время звонка и сравниваю номер звонка с номеров срезе,
                 if (call_in_call_list_start_time >= call_in_call_list_time) \
                         and (call_in_call_list_time_delta >= call_in_call_list_time) \
                         and shot_number(call[1]) == shot_number(call_in_call_list[2]):
                     chk_call_list.append(call_in_call_list)
 
             if len(chk_call_list) == 0:  # Проверяю длину списка, если пустой - не ответили
-                conv_call = list(call)
-                conv_call.append('Did not call back')
-                conv_call.append('0000-00-00 00:00:00')
-                conv_call.append('None')
-                call_check_answer.append(conv_call)
+                flag_ccb = False
+                # Проверяю перезванивал ли клиент
+                for call_in_call_list in call_list_slice:
+                    # Получаю дату первого звонка в срезе
+                    call_in_call_list_start_time = datetime.strptime(call_in_call_list[0], "%Y-%m-%d %H:%M:%S")
+                    # Получаю дату последнего звонка
+                    call_in_call_list_time_delta = call_in_call_list_start_time + timedelta(seconds=int(interval))
+                    # Проверяю время звонка и сравниваю номер звонка с номеров срезе,
+                    if (call_in_call_list_start_time > call_in_call_list_time) \
+                            and (call_in_call_list_time_delta >= call_in_call_list_time) \
+                            and shot_number(call[1]) == shot_number(call_in_call_list[1]):
+                        conv_call = list(call)
+                        conv_call.append('Client call back')
+                        conv_call.append(call_in_call_list[0])
+                        conv_call.append(call_in_call_list[1])
+                        call_check_answer.append(conv_call)
+                        flag_ccb = True
+                        break
+
+                if not flag_ccb:
+                    conv_call = list(call)
+                    conv_call.append('Did not call back')
+                    conv_call.append('0000-00-00 00:00:00')
+                    conv_call.append('None')
+                    call_check_answer.append(conv_call)
                 continue
 
             for chk_call in chk_call_list:
@@ -542,12 +585,41 @@ def check_answer(calls, interval=900):
     return call_check_answer_all
 
 
-def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call_back_f=False, no_call_back=False):
+# Возврат индекса списка по дате
+def get_index_date(call_list, key, column=0):
+    index = 0
+    for call in call_list:
+        if key == call[column]:
+            break
+        else:
+            index += 1
+
+    return index
+
+
+# Возврат индекса списка по дате приблизительно
+def get_index_date_average(call_list, date_end, index=0, column=0, template="%Y-%m-%d %H:%M:%S"):
+    index_start = index
+    for call in call_list[index_start:]:
+        if date_end == call[column]:
+            break
+        # Сравниваем даты, если дата равна или больше прерываем цикл
+        elif datetime.strptime(date_end, template) <= datetime.strptime(call[column], template):
+            break
+        else:
+            index += 1
+
+    return index
+
+
+def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call_back_f=False, no_call_back=False,
+              cl_call_back=False):
     # 0 - ANSWERED          0 - Call back
-    # 1 - NO ANSWERED       1 - Call back no answer
+    # 1 - NO ANSWER       1 - Call back no answer
     # 2 - BUSY              2 - Call back but busy
     # 3 - FAILED            3 - Call back but failed
     #                       4 - Did not call back
+    #                       5 - Client call back
     ans_disp = 0
     if calls is None:
         mod_calls = ('', '', '', '', '', '', '', '')
@@ -559,7 +631,7 @@ def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call
         # Меняем статус звонка в цифру
         if call[3] == 'ANSWERED':
             disposition = 0
-        elif call[3] == 'NO ANSWERED':
+        elif call[3] == 'NO ANSWER':
             disposition = 1
         elif call[3] == 'BUSY':
             disposition = 2
@@ -580,6 +652,8 @@ def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call
                 ans_disp = 3
             elif call[8] == 'Did not call back':
                 ans_disp = 4
+            elif call[8] == 'Client call back':
+                ans_disp = 5
             else:
                 ans_disp = 3
 
@@ -588,7 +662,8 @@ def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call
             mod_call = (
                 time_shift(call[0]), shot_number(call[1]), shot_number(call[2]), disposition, sec_to_hours(call[4]),
                 call[5], call[6], i, sec_to_hours(call[7]))
-            if not no_call_back and not call_back_b and not call_back_f and not call_back and not call_back_n:
+            if not no_call_back and not call_back_b and not call_back_f and not call_back and not call_back_n \
+                    and not cl_call_back:
                 mod_calls.append(mod_call)
         if len(call) == 11:
             mod_call = (
@@ -599,31 +674,43 @@ def calls_mod(calls, call_back=False, call_back_n=False, call_back_b=False, call
                     and not call_back_b \
                     and not call_back_f \
                     and not call_back \
-                    and not call_back_n:
+                    and not call_back_n \
+                    and not cl_call_back:
                 mod_calls.append(mod_call)
             elif call[8] == 'Call back' \
                     and not call_back_b \
                     and not call_back_f \
                     and not call_back_n \
-                    and not no_call_back:
+                    and not no_call_back \
+                    and not cl_call_back:
                 mod_calls.append(mod_call)
             elif call[8] == 'Call back no answer' \
                     and not call_back_b \
                     and not call_back_f \
                     and not call_back \
-                    and not no_call_back:
+                    and not no_call_back \
+                    and not cl_call_back:
                 mod_calls.append(mod_call)
             elif call[8] == 'Call back but busy' \
                     and not call_back_n \
                     and not call_back_f \
                     and not call_back \
-                    and not no_call_back:
+                    and not no_call_back \
+                    and not cl_call_back:
                 mod_calls.append(mod_call)
             elif call[8] == 'Call back but failed' \
                     and not call_back_n \
                     and not call_back_b \
                     and not call_back \
-                    and not no_call_back:
+                    and not no_call_back \
+                    and not cl_call_back:
+                mod_calls.append(mod_call)
+            elif call[8] == 'Client call back' \
+                    and not call_back_n \
+                    and not call_back_b \
+                    and not call_back \
+                    and not no_call_back \
+                    and not call_back_f:
                 mod_calls.append(mod_call)
             else:
                 continue
@@ -673,4 +760,4 @@ def to_fixed(num_obj, digits=0):
 
 if __name__ == '__main__':
     log_setup()
-    app.run(host=conf['webserver']['address'], port=conf['webserver']['port'], debug=False)
+    app.run(host=FLASK_ADDRESS, port=FLASK_PORT, debug=False)
