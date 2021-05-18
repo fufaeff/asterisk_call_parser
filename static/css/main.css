@@ -1,0 +1,187 @@
+body {
+    background-color: #edeef0;
+    margin: auto;
+    padding: 15px 15px 10px 15px;
+}
+p {
+    color: #252b31;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    font-size: 18px;
+    margin: 10px;
+    text-align: center;
+}
+.table_samples {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 0 0 #dce1e6, 0 0 0 1px #e7e8ec;
+    float: left;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    height: 122px;
+    margin-bottom: 10px;
+    text-align: center;
+    transition-duration: 0.3s;
+    width: 19.4%;
+}
+.table_samples:hover {
+    box-shadow: 0 1px 0 0 #b8bcc0, 0 0 3px 1px #bcbdc0;
+}
+.table_filters {
+    background-color: white;
+    box-shadow: 0 1px 0 0 #dce1e6, 0 0 0 1px #e7e8ec;
+    border-radius: 4px;
+    float: right;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    height: 122px;
+    text-align: center;
+    transition-duration: 0.3s;
+    width: 80%;
+}
+.table_filters:hover {
+    box-shadow: 0 1px 0 0 #b8bcc0, 0 0 3px 1px #bcbdc0;
+}
+.td_filters {
+    background-color: white;
+    color: #1d2424;
+    text-align: center;
+}
+.table_summary {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 0 0 #dce1e6, 0 0 0 1px #e7e8ec;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    margin-bottom: 20px;
+    padding: 7px;
+    position: relative;
+    text-align: center;
+    transition-duration: 0.3s;
+    width: 100%;
+}
+.table_summary:hover {
+    box-shadow: 0 1px 0 0 #b8bcc0, 0 0 3px 1px #bcbdc0;
+}
+.table_generator {
+    background-color: transparent;
+    border-collapse: collapse;
+    box-shadow: 0 1px 0 0 #dce1e6, 0 0 0 1px #e7e8ec;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    width: 100%;
+}
+.td_filters {
+    background-color: white;
+    color: #1d2424;
+    text-align: center;
+}
+.td_generator {
+    display: table-cell;
+    background-color: transparent;
+    border-bottom: 2px solid #e7e8ec;
+    color: #252b31;
+    transition-duration: 0.3s;
+    text-align: center;
+    line-height: 10px;
+}
+.tr_generator {
+    background-color: white;
+    transition-duration: 0.3s;
+}
+.tr_generator:hover {
+    background-color: #f1f3f4;
+}
+.tr_generator:hover .busy {
+    color: #252b31;
+    background-color: #f1f3f4;
+}
+.tr_generator:hover .normal {
+    color: #252b31;
+}
+
+.tr_generator:hover .out {
+    color: #252b31;
+    background-color: #f1f3f4;
+}
+.gen_head_l {
+    background-color: #5181b8;
+    border-radius: 20px 0px 0px 0px;
+}
+.gen_head_l p {
+    color: white;
+}
+.gen_head_m {
+    background-color: #5181b8;
+}
+.gen_head_m p {
+    color: white;
+}
+.gen_head_r {
+    background-color: #5181b8;
+    border-radius: 0px 20px 0px 0px;
+}
+.gen_head_r p {
+    color: white;
+}
+select {
+    background-color: #edeef0;
+    border: none;
+    border-radius: 8px;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    height: 32px;
+    outline: none;
+    padding: 5px;
+    transition: 0.2s;
+}
+select:hover {
+    color: #252b31;
+    box-shadow: 100px 100px 0 0 #5181b8 inset;
+}
+input {
+    background-color: #edeef0;
+    border: none;
+    border-radius: 8px;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    outline: none;
+    padding: 5px;
+    transition: 0.2s;
+}
+input:hover {
+    color: #252b31;
+    box-shadow: 100px 100px 0 0 #5181b8 inset;
+}
+button {
+    background-color: #edeef0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: Rubik, Calibri,  Arial, Tahoma;
+    height: 30px;
+    outline: none;
+    padding: 5px;
+    transition: 0.3s;
+    width: 80px;
+}
+button:hover {
+    box-shadow: 200px 0 0 0 #5181b8 inset;
+    color: white;
+}
+.busy {
+    color: #806f60;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #fff3e6;
+}
+.normal {
+    color: #666666;
+    font-size: 18px;
+}
+
+.out {
+    color: #737f80;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #e6fbff;
+}
+
+.shad_r {
+    border-right: solid;
+    border-right-width: 1px;
+    border-right-color: #dce1e6;
+}
