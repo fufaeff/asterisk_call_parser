@@ -290,15 +290,27 @@ def parser(rows, source='', dest='', disp=''):
         else:
             return True
 
+    def select_dstchannel(dstchannel):
+        if dstchannel.split('/')[0] == 'SIP':  # 'SIP/123-00000004'
+            return dstchannel.split('/')[1].split('-')[0]
+        elif dstchannel.split('/')[0] == 'Local':  # 'Local/131@from-internal-xfer-0000004f;1'
+            return dstchannel.split('/')[1].split('@')[0]
+
     # Выбираю кто куда звонил
     def sel_dst_nam(call_):
         if call_['dcontext'] in ('ext-group', 'ext-queues', 'app-blackhole'):
             if call_['dstchannel'].find('SIP') != -1:
-                dst_ = call_['dstchannel'][4:-9]
+                dst_ = select_dstchannel(call_['dstchannel'])
                 src_ = call_['src']
                 return {'src': src_, 'dst': dst_}
-        elif call_['dcontext'] in ('followme-check', 'from-internal', 'ext-local'):
-            return {'src': call_['cnum'], 'dst': call_['dst']}
+        elif call_['dcontext'] in ('followme-check', 'from-internal'):
+            src_ = call_['cnum']
+            dst_ = call_['dst']
+            return {'src': src_, 'dst': dst_}
+        elif call_['dcontext'] in 'ext-local':
+            src_ = call_['src']
+            dst_ = select_dstchannel(call_['dstchannel'])
+            return {'src': src_, 'dst': dst_}
         elif call_['dcontext'].find('ivr') != -1:
             dst_ = f"{call_['channel'][4:-9]} (ivr)"
             return {'src': call_['src'], 'dst': dst_}
