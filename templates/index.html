@@ -31,20 +31,20 @@
                 <tr>
                     <td class="">
                         <p><b>Период</b></p>
-                        <input type="datetime-local" id="startdate" name="startdate" value="{{ startdate }}">&nbsp&nbsp&nbsp<b>по</b>&nbsp&nbsp
-                        <input type="datetime-local" id="stoptdate" name="stoptdate" value="{{ stoptdate }}">
+                        <input type="datetime-local" id="startdate" name="startdate" value="{{ render_param['startdate'] }}">&nbsp&nbsp&nbsp<b>по</b>&nbsp&nbsp
+                        <input type="datetime-local" id="stoptdate" name="stoptdate" value="{{ render_param['stoptdate'] }}">
                         <p><button type="submit">Поиск</button></p>
                     </td>
 
                     <td class="">
                         <p><b>С номера</b>
-                        <p><input type="text" id="src" name="src" maxlength="10" value="{{ src_ }}">
+                        <p><input type="text" id="src" name="src" maxlength="10" value="{{ render_param['src'] }}">
                         <p><button type="submit">Поиск</button>
                     </td>
 
                     <td class="">
                         <p><b>На номер</b>
-                        <p><input type="text" id="dst" name="dst" maxlength="10" value="{{ dst_ }}">
+                        <p><input type="text" id="dst" name="dst" maxlength="10" value="{{ render_param['dst'] }}">
                         <p><button type="submit">Поиск</button>
                     </td>
 
@@ -53,15 +53,15 @@
                         <select name="status">
                             <option value="all">Все</option>
                             <option value="ANSWERED">Дозвонились</option>
-                            <option value="NO ANSWERED">Не дозвонились</option>
+                            <option value="NO ANSWER">Не дозвонились</option>
                             <option value="BUSY">Занято</option>
                             <option value="FAILED">Ошибка</option>
-                            <option value="call back">Перезвонили, дозвонились</option>
-                            <option value="call back no answer">Перезвонили, не дозвонились</option>
-                            <option value="call back but busy">Перезвонили, занято</option>
-                            <option value="call back but fail">Перезвонили, ошибка</option>
-                            <option value="client call back">Перезвонили самостоятельно</option>
-                            <option value="no call back">Не перезвонили</option>
+                            <option value="Call back">Перезвонили, дозвонились</option>
+                            <option value="Call back no answer">Перезвонили, не дозвонились</option>
+                            <option value="Call back but busy">Перезвонили, занято</option>
+                            <option value="Call back but fail">Перезвонили, ошибка</option>
+                            <option value="Client call back">Перезвонили самостоятельно</option>
+                            <option value="Did not call back">Не перезвонили</option>
 
                         </select>
                         <p><button type="submit">Поиск</button></p>
@@ -72,13 +72,13 @@
         <!-- Суммарная информация -->
         <table class="table_summary">
             <tr>
-                <td class="shad_r"><p><b>Количество звонков:</b></p> <p> {{ call_num }} </p> </td>
-                <td class="shad_r"><p><b>Общее время разговоров + ожидания:</b></p> <p> {{ sum_time_speak_wait }} </p> </td>
-                <td class="shad_r"><p><b>Общее время разговоров:</b></p> <p> {{ sum_time_speak }} </p> </td>
-                <td class="shad_r"><p><b>Общее время ожидания:</b></p> <p> {{ sum_time_wait }} </p> </td>
-                <td class="shad_r"><p><b>Среднее время разговоров + ожидания:</b></p> <p> {{ average_time_speak_wait }} </p> </td>
-                <td class="shad_r"><p><b>Среднее время разговоров:</b></p> <p> {{ average_time_speak }} </p> </td>
-                <td class=""><p><b>Среднее время ожидания:</b></p> <p> {{ average_time_wait }} </p> </td>
+                <td class="shad_r"><p><b>Количество звонков:</b></p> <p> {{ render_param.call_num }} </p> </td>
+                <td class="shad_r"><p><b>Общее время разговоров + ожидания:</b></p> <p> {{ render_param.sum_time_speak_wait }} </p> </td>
+                <td class="shad_r"><p><b>Общее время разговоров:</b></p> <p> {{ render_param.sum_time_speak }} </p> </td>
+                <td class="shad_r"><p><b>Общее время ожидания:</b></p> <p> {{ render_param.sum_time_wait }} </p> </td>
+                <td class="shad_r"><p><b>Среднее время разговоров + ожидания:</b></p> <p> {{ render_param.average_time_speak_wait }} </p> </td>
+                <td class="shad_r"><p><b>Среднее время разговоров:</b></p> <p> {{ render_param.average_time_speak }} </p> </td>
+                <td class=""><p><b>Среднее время ожидания:</b></p> <p> {{ render_param.average_time_wait }} </p> </td>
             </tr>
         </table>
 
@@ -92,35 +92,35 @@
                 <td class="td_generator gen_head_m"><p><b>Статус</b></p></td>
                 <td class="td_generator gen_head_r"><p><b>Прослушать</b></p></td>
             </tr>
-        {% for item in check_answer_list_for_html %}
+        {% for call in render_param.check_answer_list_for_html %}
             <tr class="tr_generator">
-                <!-- <td width="2%">  {{ item[7] }} </td>  Номер по порядку -->
-                <td width="15%" class="td_generator">  {{ item[0] }} </td> <!-- Дата -->
-                <td width="10%" class="td_generator">  {{ item[1] }} </td> <!-- Кто звонил -->
-                <td width="10%" class="td_generator">  {{ item[2] }} </td> <!-- Куда звонил-->
-                {% if 0 == item[3] %}
-                    <td class="td_generator normal">Дозвонились. Ожидание: {{ item[8] }} Разговор: {{ item[4] }}</td>
+                <!-- <td width="2%">  {{ call[7] }} </td>  Номер по порядку -->
+                <td width="15%" class="td_generator">  {{ call.calldate }} </td> <!-- Дата -->
+                <td width="10%" class="td_generator">  {{ call.src }} </td> <!-- Кто звонил -->
+                <td width="10%" class="td_generator">  {{ call.dst }} </td> <!-- Куда звонил-->
+                {% if call.disposition == "ANSWERED" %}
+                    <td class="td_generator normal">Ожидание: {{ call.callwait }}. Разговор: {{ call.billhour }}.</td>
                 {% endif %}
-                {% if 1 == item[3] %}
-                    {% if 4 == item[9] %}
-                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ item[8] }}  </td>
+                {% if call['disposition'] == 'NO ANSWER' %}
+                    {% if call['ans_disp'] == 'Did not call back' %}
+                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Не перезвонили.</td>
                     {% else %}
-                        {% if 0 == item[9] %}
-                            <td class="td_generator busy">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили в {{ item[10] }} с номера {{ item[11] }}</td>
+                        {% if call['ans_disp'] == 'Call back' %}
+                            <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили в {{ call.ans_disp_calldate }} с номера {{ call.ans_src }}</td>
                         {% else %}
-                            {% if 1 == item[9] %}
-                                <td class="td_generator busy">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, без ответа</td>
+                            {% if call['ans_disp'] == 'Call back no answer' %}
+                                <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, без ответа</td>
                             {% else %}
-                                {% if 2 == item[9] %}
-                                    <td class="td_generator busy">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, занято</td>
+                                {% if call['ans_disp'] == 'Call back but busy' %}
+                                    <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, занято</td>
                                 {% else %}
-                                    {% if 3 == item[9] %}
-                                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ item[8] }}. Перезвонили, ошибка</td>
+                                    {% if call['ans_disp'] == 'Call back but failed' %}
+                                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, ошибка</td>
                                     {% else %}
-                                        {% if 5 == item[9] %}
-                                            <td class="td_generator out">Не дозвонились. Ожидание: {{ item[8] }}. Клиент перезвонил в {{ item[10] }}</td>
+                                        {% if call['ans_disp'] == 'Client call back' %}
+                                            <td class="td_generator out">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили в {{ call.ans_disp_calldate }} на {{ call.ans_dst }}</td>
                                         {% else %}
-                                            <td class="td_generator out">Исходящий. Не дозвонились. Ожидание: {{ item[8] }} </td>
+                                            <td class="td_generator out">Не дозвонились. Ожидание: {{ call.durationhour }} </td>
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
@@ -128,27 +128,27 @@
                         {% endif %}
                     {% endif %}
                 {% endif %}
-                {% if 2 == item[3] %}
-                    <td class="td_generator busy"> Занято </td>
+                {% if call['disposition'] == 'BUSY' %}
+                    <td class="td_generator busy"> Занято. Ожидание: {{ call.durationhour }}</td>
                 {% endif %}
-                {% if 3 == item[3] %}
-                    <td class="td_generator busy"> Ошибка </td>
+                {% if call['disposition'] == 'FAILED' %}
+                    <td class="td_generator busy"> Ошибка. Ожидание: {{ call.durationhour }}</td>
                 {% endif %}
                 <td width="15%" class="td_generator">
                     <audio controls >
-                    <source src="/audio/{{item[5] }}" type="audio/x-wav;codec=pcm">
+                    <source src="/audio/{{call['recordingfile'] }}" type="audio/x-wav;codec=pcm">
                         Your browser does not support the audio element.
                     </audio>
                 </td>
-                <!--  <td width="10%"> <a href="/download/{{item[5] }}">Скачать</a> </td>  -->
+                <!--  <td width="10%"> <a href="/download/{{call[5] }}">Скачать</a> </td>  -->
                 <!--<td width="5%">   </td> Длительность разговора звонка -->
-                <!-- <td>  {{ item[5] }} </td> -->
-                <!-- <td>  {{ item[6] }} </td> -->
-                <!-- <td>  {{ item[7] }} </td> -->
-                <!-- <td>  {{ item[8] }} </td> -->
-                <!-- <td>  {{ item[9] }} </td> -->
-                <!-- <td>  {{ item[10] }} </td> -->
-                <!-- <td>  {{ item[10] }} </td> -->
+                <!-- <td>  {{ call[5] }} </td> -->
+                <!-- <td>  {{ call[6] }} </td> -->
+                <!-- <td>  {{ call[7] }} </td> -->
+                <!-- <td>  {{ call.callwait }} </td> -->
+                <!-- <td>  {{ call[9] }} </td> -->
+                <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
+                <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
             </tr>
         {% endfor %}
         </table>
