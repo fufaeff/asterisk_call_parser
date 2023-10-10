@@ -93,63 +93,65 @@
                 <td class="td_generator gen_head_r"><p><b>Прослушать</b></p></td>
             </tr>
         {% for call in render_param.check_answer_list_for_html %}
-            <tr class="tr_generator">
-                <!-- <td width="2%">  {{ call[7] }} </td>  Номер по порядку -->
-                <td width="15%" class="td_generator">  {{ call.calldate }} </td> <!-- Дата -->
-                <td width="10%" class="td_generator">  {{ call.src }} </td> <!-- Кто звонил -->
-                <td width="10%" class="td_generator">  {{ call.dst }} </td> <!-- Куда звонил-->
-                {% if call.disposition == "ANSWERED" %}
-                    <td class="td_generator normal">Ожидание: {{ call.callwait }}. Разговор: {{ call.billhour }}.</td>
-                {% endif %}
-                {% if call['disposition'] == 'NO ANSWER' %}
-                    {% if call['ans_disp'] == 'Did not call back' %}
-                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Не перезвонили.</td>
-                    {% else %}
-                        {% if call['ans_disp'] == 'Call back' %}
-                            <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили в {{ call.ans_disp_calldate }} с номера {{ call.ans_src }}</td>
+            {% if not call.hidden %}
+                <tr class="tr_generator">
+                    <!-- <td width="2%">  {{ call[7] }} </td>  Номер по порядку -->
+                    <td width="15%" class="td_generator">  {{ call.calldate }} </td> <!-- Дата -->
+                    <td width="10%" class="td_generator">  {{ call.src }} </td> <!-- Кто звонил -->
+                    <td width="10%" class="td_generator">  {{ call.dst }} </td> <!-- Куда звонил-->
+                    {% if call.disposition == "ANSWERED" %}
+                        <td class="td_generator normal">Ожидание: {{ call.callwaithour() }}. Разговор: {{ call.billhour() }}.</td>
+                    {% endif %}
+                    {% if call['disposition'] == 'NO ANSWER' %}
+                        {% if call['ans_disp'] == 'Did not call back' %}
+                            <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Не перезвонили.</td>
                         {% else %}
-                            {% if call['ans_disp'] == 'Call back no answer' %}
-                                <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, без ответа</td>
+                            {% if call['ans_disp'] == 'Call back' %}
+                                <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Перезвонили в {{ call.ans_disp_calldate }} с номера {{ call.ans_src }}</td>
                             {% else %}
-                                {% if call['ans_disp'] == 'Call back but busy' %}
-                                    <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, занято</td>
+                                {% if call['ans_disp'] == 'Call back no answer' %}
+                                    <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Перезвонили, без ответа</td>
                                 {% else %}
-                                    {% if call['ans_disp'] == 'Call back but failed' %}
-                                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили, ошибка</td>
+                                    {% if call['ans_disp'] == 'Call back but busy' %}
+                                        <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Перезвонили, занято</td>
                                     {% else %}
-                                        {% if call['ans_disp'] == 'Client call back' %}
-                                            <td class="td_generator out">Не дозвонились. Ожидание: {{ call.durationhour }}. Перезвонили в {{ call.ans_disp_calldate }} на {{ call.ans_dst }}</td>
+                                        {% if call['ans_disp'] == 'Call back but failed' %}
+                                            <td class="td_generator busy">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Перезвонили, ошибка</td>
                                         {% else %}
-                                            <td class="td_generator out">Не дозвонились. Ожидание: {{ call.durationhour }} </td>
+                                            {% if call['ans_disp'] == 'Client call back' %}
+                                                <td class="td_generator out">Не дозвонились. Ожидание: {{ call.callwaithour() }}. Перезвонили в {{ call.ans_disp_calldate }} на {{ call.ans_dst }}</td>
+                                            {% else %}
+                                                <td class="td_generator out">Не дозвонились. Ожидание: {{ call.callwaithour() }} </td>
+                                            {% endif %}
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
                         {% endif %}
                     {% endif %}
-                {% endif %}
-                {% if call['disposition'] == 'BUSY' %}
-                    <td class="td_generator busy"> Занято. Ожидание: {{ call.durationhour }}</td>
-                {% endif %}
-                {% if call['disposition'] == 'FAILED' %}
-                    <td class="td_generator busy"> Ошибка. Ожидание: {{ call.durationhour }}</td>
-                {% endif %}
-                <td width="15%" class="td_generator">
-                    <audio controls >
-                    <source src="/audio/{{call['recordingfile'] }}" type="audio/x-wav;codec=pcm">
-                        Your browser does not support the audio element.
-                    </audio>
-                </td>
-                <!--  <td width="10%"> <a href="/download/{{call[5] }}">Скачать</a> </td>  -->
-                <!--<td width="5%">   </td> Длительность разговора звонка -->
-                <!-- <td>  {{ call[5] }} </td> -->
-                <!-- <td>  {{ call[6] }} </td> -->
-                <!-- <td>  {{ call[7] }} </td> -->
-                <!-- <td>  {{ call.callwait }} </td> -->
-                <!-- <td>  {{ call[9] }} </td> -->
-                <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
-                <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
-            </tr>
+                    {% if call['disposition'] == 'BUSY' %}
+                        <td class="td_generator busy"> Занято. Ожидание: {{ call.durationhour }}</td>
+                    {% endif %}
+                    {% if call['disposition'] == 'FAILED' %}
+                        <td class="td_generator busy"> Ошибка. Ожидание: {{ call.durationhour }}</td>
+                    {% endif %}
+                    <td width="15%" class="td_generator">
+                        <audio controls >
+                        <source src="/audio/{{call['recordingfile'] }}" type="audio/x-wav;codec=pcm">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </td>
+                    <!--  <td width="10%"> <a href="/download/{{call[5] }}">Скачать</a> </td>  -->
+                    <!--<td width="5%">   </td> Длительность разговора звонка -->
+                    <!-- <td>  {{ call[5] }} </td> -->
+                    <!-- <td>  {{ call[6] }} </td> -->
+                    <!-- <td>  {{ call[7] }} </td> -->
+                    <!-- <td>  {{ call.callwait }} </td> -->
+                    <!-- <td>  {{ call[9] }} </td> -->
+                    <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
+                    <!-- <td>  {{ call.ans_disp_calldate }} </td> -->
+                </tr>
+            {% endif %}
         {% endfor %}
         </table>
     </body>
