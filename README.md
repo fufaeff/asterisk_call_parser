@@ -3,9 +3,9 @@
 Анализ звонков на основе выбранных фильтров. 
 
 ## Требования:
-    FreePBX14
+    FreePBX/Issabel
     Python3
-    Chromium
+    
 
 ## Установка:
     python3 -m pip install -r ./requirements.txt
@@ -20,6 +20,7 @@
     # [system]
     CHECK_ANSWER_INTERVAL = 3600
     PATH_TO_ASTERISK_MONITOR = '/var/spool/asterisk/monitor/'
+    ASTERISK_DISTR='ISSABEL'
 
     # [asteriskcdr]
     HOST = 'HOST_WITH_DB_CDR'
