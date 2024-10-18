@@ -64,9 +64,18 @@ def parser(rows, source='', dest='', disp=''):
         for uniq_call in uniqueid_calls_list_sorted:
             # call_info.hidden = False
 
-            if uniq_call['dcontext'] in ('from-internal'):
-                call_info.src = uniq_call['cnum']
-                call_info.dst = uniq_call['dst']
+            if uniq_call['dcontext'] in 'from-internal':
+                if ASTERISK_DISTR == 'ISSABEL':  # Проверяем дистрибутив астериска
+                    if uniq_call['lastapp'] == 'AppDial2':  # если контекст вызова с C2C
+                        call_info.src = uniq_call['src']
+                        call_info.dst = uniq_call['channel'].split('/')[1].split('-')[0]
+                    else:
+                        call_info.src = uniq_call['cnum']
+                        call_info.dst = uniq_call['dst']
+                    # call_info.src = uniq_call['src']
+                else:
+                    call_info.src = uniq_call['cnum']
+                    call_info.dst = uniq_call['dst']
 
             elif uniq_call['dcontext'] == 'ext-local':  # Обработка недозвона с очереди
                 call_info.src = uniq_call['cnum']
@@ -80,7 +89,32 @@ def parser(rows, source='', dest='', disp=''):
                         except BaseException as e:
                             error(str(e))
                             continue
+
             elif uniq_call['dcontext'] == 'from-internal-xfer':
+                if ASTERISK_DISTR == 'ISSABEL':  # Проверяем дистрибутив астериска
+                    if uniq_call['lastapp'] == 'AppDial':
+                        call_info.src = uniq_call['src']
+                        call_info.dst = uniq_call['channel'].split('/')[1].split('-')[0]
+                    elif uniq_call['lastapp'] == '':
+                        call_info.hidden = True
+                    else:
+                        call_info.src = uniq_call['src']
+                else:
+                    call_info.src = uniq_call['cnum']
+                call_info.dst = uniq_call['dst']
+
+            elif uniq_call['dcontext'] == 'from-trunk':
+                if ASTERISK_DISTR == 'ISSABEL':  # Проверяем дистрибутив астериска
+                    if uniq_call['lastapp'] == 'AppDial':
+                        call_info.src = uniq_call['src']
+                        call_info.dst = uniq_call['dstchannel'].split('/')[1].split('-')[0]
+                    else:
+                        call_info.src = uniq_call['src']
+                else:
+                    call_info.src = uniq_call['cnum']
+                    call_info.dst = uniq_call['dst']
+
+            elif uniq_call['dcontext'] == 'app-blacklist-remove':
                 continue
 
             elif uniq_call['dcontext'] == 'macro-dial-one':  # обработка переводов
